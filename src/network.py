@@ -82,7 +82,7 @@ class Network(object):
         self.biases = [b-(eta/len(mini_batch))*nb
                        for b, nb in zip(self.biases, nabla_b)]
 
-    def backprop(self, x, y):
+    def backprop(self, x, y): # การทำงานส่วนใหญ่จะไปอยู่ที่ self.SGD และ self.update_mini_batch แต่ self.backprop นี้จะเป็นเมดทอดฟังก์ชั่นพิเศษในการช่วยคำนวณ gradient
         """Return a tuple ``(nabla_b, nabla_w)`` representing the
         gradient for the cost function C_x.  ``nabla_b`` and
         ``nabla_w`` are layer-by-layer lists of numpy arrays, similar
@@ -100,7 +100,7 @@ class Network(object):
             activations.append(activation)
         # backward pass
         delta = self.cost_derivative(activations[-1], y) * \
-            sigmoid_prime(zs[-1])
+            sigmoid_prime(zs[-1])           # sigmoid_prime คำนวณฟังก์ชั่น σ
         nabla_b[-1] = delta
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
         # Note that the variable l in the loop below is used a little
