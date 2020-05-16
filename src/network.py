@@ -18,7 +18,10 @@ import numpy as np
 
 class Network(object):
 
-    def __init__(self, sizes):
+    def __init__(self, sizes):          # sizes เก็บจำนวนของ neuron ในแต่ละ layer 
+        '''เช่น ถ้าต้องการสร้าง Network object ที่มี 2 neuron ใน layer แรก,  3neuron ใน layer ที่สอง และ มี 1 neuron ใน layer สุดท้าย 
+        สามารถเขียนโค๊ตได้เป็น net = Network([2, 3, 1])'''
+        
         """The list ``sizes`` contains the number of neurons in the
         respective layers of the network.  For example, if the list
         was [2, 3, 1] then it would be a three-layer network, with the
@@ -29,12 +32,20 @@ class Network(object):
         layer is assumed to be an input layer, and by convention we
         won't set any biases for those neurons, since biases are only
         ever used in computing the outputs from later layers."""
-        self.num_layers = len(sizes)
+        self.num_layers = len(sizes)            # len(sizes) คือจำนวน layer
         self.sizes = sizes
-        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
+        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]            # สาเหตุที่เราไม่กำหนดค่า bias ใน layer แรก (จาก sizes[1:]) เนื่องจากเราถือว่า layer แรกเป็น input layer
         self.weights = [np.random.randn(y, x)
+        # ค่า bias และ weight จะถูกสุ่มด้วยฟังก์ชั่น np.random.randn เพื่อสร้างการแจกแจงแบบเกาส์เชียนที่มีค่าเฉลี่ยนเป็น 0 และส่วนเบี่ยงเบนมาตรฐานเป็น 1 
+        # โดยการทำแบบนี้จะเป็นการสร้างอัลกอลิทึมการสุ่มค่า gradient descent                
                         for x, y in zip(sizes[:-1], sizes[1:])]
 
+    # กำหนดเมททอด sigmoid (เห็นในบทความมี) 
+    '''
+    def sigmoid(z):   # z คือ  vector หรือ Numpy array
+        return 1.0/(1.0+np.exp(-z))
+    '''
+    
     def feedforward(self, a):
         """Return the output of the network if ``a`` is input."""
         for b, w in zip(self.biases, self.weights):
@@ -43,6 +54,9 @@ class Network(object):
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
             test_data=None):
+        """เทรน neural network จะใช้ mini-batch ในการสุ่ม gradient descent, training_data คือ tuples (x, y) 
+        ซึ่งเป็นข้อมูล input และ output สำหรับการเทรน, eta คือ learning rate (η)"""
+        
         """Train the neural network using mini-batch stochastic
         gradient descent.  The ``training_data`` is a list of tuples
         ``(x, y)`` representing the training inputs and the desired
@@ -56,17 +70,19 @@ class Network(object):
         for j in xrange(epochs):
             random.shuffle(training_data)
             mini_batches = [
-                training_data[k:k+mini_batch_size]
+                training_data[k:k+mini_batch_size]          # แบ่งข้อมูลสำหรับเทรนตามค่า mini-batch
                 for k in xrange(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
-            if test_data:
+            if test_data:           # ประเมินประสิทธิภาพของแต่ละ epoch และ print ออกมาเพื่อเช็คความคืบหน้า
                 print "Epoch {0}: {1} / {2}".format(
                     j, self.evaluate(test_data), n_test)
             else:
                 print "Epoch {0} complete".format(j)
 
     def update_mini_batch(self, mini_batch, eta):
+        """อัปเดตค่า weight และ biase โดยการประยุกต์ backpropagation  single mini batch จาก gradient descent """
+        
         """Update the network's weights and biases by applying
         gradient descent using backpropagation to a single mini batch.
         The ``mini_batch`` is a list of tuples ``(x, y)``, and ``eta``
@@ -74,7 +90,7 @@ class Network(object):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         for x, y in mini_batch:
-            delta_nabla_b, delta_nabla_w = self.backprop(x, y)
+            delta_nabla_b, delta_nabla_w = self.backprop(x, y)          # การทำงานส่วนใหญ่จะทำในบรรทัดนี้ โดยจะเรียกสิ่งที่เรีนกว่าอัลกอลิทึม backpropagation ซึ่งเป็นวิธีการคำนวณ cost function ที่รวดเร็ว
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
         self.weights = [w-(eta/len(mini_batch))*nw
